@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "BrainrotRun",
+    "slug": "brainrotrun",
+    "version": "1.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "sdkVersion": "54.0.0",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#FF6B9D"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.brainrotrun.game"
+    },
+    "android": {
+      "package": "com.brainrotrun.game"
+    },
+    "web": {
+    }
+  }
+}
