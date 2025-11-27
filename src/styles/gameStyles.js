@@ -150,16 +150,21 @@ export const gameStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 5,
-    backgroundColor: 'rgba(255, 215, 0, 0.3)',
+    backgroundColor: 'rgba(255, 215, 0, 0.5)', // Tăng opacity để dễ thấy
     borderRadius: COIN_SIZE / 2,
-    borderWidth: 2,
+    borderWidth: 3, // Viền dày hơn
     borderColor: '#FFD700',
+    shadowColor: '#FFD700', // Thêm shadow để nổi bật
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+    elevation: 10,
   },
   coinEmoji: {
-    fontSize: 40,
+    fontSize: 45, // Tăng kích thước emoji
     textShadowColor: '#000',
     textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
+    textShadowRadius: 5,
   },
   controlsHint: {
     position: 'absolute',

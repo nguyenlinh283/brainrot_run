@@ -347,6 +347,23 @@ export default function GameScreen({ character, onGameOver, highScore }) {
     });
   };
 
+  // Initialize coins ONCE khi component mount
+  useEffect(() => {
+    // Spawn coins ban đầu - trải đều từ đầu đường đến gần player
+    const initialCoins = [];
+    const playerY = height - 200; // Vị trí player (khoảng 600-700)
+    
+    // Spawn coins từ đầu màn hình (y=0) đến trước player (y=playerY-50)
+    for (let i = 0; i < 6; i++) {
+      initialCoins.push({
+        id: Date.now() + Math.random() + i,
+        lane: i % 3, // Luân phiên giữa 3 lanes: 0,1,2,0,1,2
+        y: 50 + (i * 100), // Spawn từ y=50, 150, 250, 350, 450, 550
+      });
+    }
+    setCoins(initialCoins);
+  }, []); // Empty dependency - chỉ chạy 1 lần khi mount
+
   // Game loop
   useEffect(() => {
     if (!gameRunning) return;
@@ -429,8 +446,8 @@ export default function GameScreen({ character, onGameOver, highScore }) {
         lastObstacleSpawn.current = currentTime;
       }
 
-      // Spawn coins - Giữ interval cố định để dễ thấy
-      if (currentTime - lastCoinSpawn.current > 1000) { // Mỗi 1 giây spawn 1 coin
+      // Spawn coins - Tăng tần suất spawn để luôn có coins trên đường
+      if (currentTime - lastCoinSpawn.current > 600) { // Mỗi 0.6 giây spawn 1 coin
         spawnCoin();
         lastCoinSpawn.current = currentTime;
       }
@@ -507,9 +524,8 @@ export default function GameScreen({ character, onGameOver, highScore }) {
       const newCoin = {
         id: Date.now() + Math.random(),
         lane,
-        y: -100, // Spawn xa hơn để không bị collect ngay
+        y: 0, // Spawn ở đỉnh màn hình (y=0)
       };
-      console.log('Spawn coin:', newCoin.id, 'lane:', newCoin.lane, 'y:', newCoin.y);
       return [...prev, newCoin];
     });
   };
@@ -531,18 +547,11 @@ export default function GameScreen({ character, onGameOver, highScore }) {
   };
 
   const updateCoins = (moveAmount) => {
-    setCoins(prev => {
-      const updated = prev
+    setCoins(prev =>
+      prev
         .map(coin => ({ ...coin, y: coin.y + moveAmount }))
-        .filter(coin => coin.y < height + COIN_SIZE);
-      
-      // Debug: Log số lượng coins
-      if (updated.length > 0) {
-        console.log('Coins on screen:', updated.length, 'First coin y:', updated[0].y);
-      }
-      
-      return updated;
-    });
+        .filter(coin => coin.y < height + COIN_SIZE)
+    );
   };
 
   const checkCollisions = () => {
@@ -587,13 +596,13 @@ export default function GameScreen({ character, onGameOver, highScore }) {
       }
     }
 
-    // Check coin collisions - Tăng radius để dễ ăn hơn
-    const actualCoins = coinsRef.current;
+    // Check coin collisions - TẤT CẢ nhân vật đều thu thập coin
     setCoins(prev => {
       const remaining = [];
       let collected = 0;
 
-      for (const coin of actualCoins) {
+      for (const coin of prev) {
+        // Thu thập coin khi player ở cùng lane và trong phạm vi
         if (coin.lane === actualLane && 
             Math.abs(coin.y - playerY) < COIN_COLLECTION_RADIUS) {
           collected++;
@@ -606,14 +615,15 @@ export default function GameScreen({ character, onGameOver, highScore }) {
         // Apply coin multiplier (Festival buff, Cappuccino crit)
         let multiplier = coinMultiplier;
         
-        // Cappuccino critical hit (20% chance)
+        // Cappuccino critical hit (20% chance) - CHỈ cho Cappuccino
         if (characterSkill.id === 'cappuccino' && Math.random() < 0.2) {
           multiplier *= 2;
           setSkillActive(true);
           setTimeout(() => setSkillActive(false), 500);
         }
         
-        setCoinsCollected(prevCoins => prevCoins + (collected * multiplier));
+        const coinsToAdd = collected * multiplier;
+        setCoinsCollected(prevCoins => prevCoins + coinsToAdd);
       }
 
       return remaining;
@@ -795,10 +805,12 @@ export default function GameScreen({ character, onGameOver, highScore }) {
         </View>
       ))}
 
-      {/* Coins - Debug: {coins.length} coins */}
-      {coins.map(coin => (
+
+      
+      {/* Coins - render giống obstacles để di chuyển */}
+      {coins.map((coin, index) => (
         <View
-          key={coin.id}
+          key={`coin-${coin.id}-${index}`}
           style={[
             styles.coin,
             {
